@@ -16,12 +16,12 @@ def redrawGameWindow():
 
     pygame.display.update()
 
-
 if __name__ == "__main__":
     player = Player(200, 410, 64, 64)
     player.setup()
+    run = True
 
-    while True:
+    while run:
         clock.tick(27)
 
         for event in pygame.event.get():
@@ -30,35 +30,16 @@ if __name__ == "__main__":
 
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_a] and player.x > player.vel:
-            player.x -= player.vel
-            player.left = True
-            player.right = False
-        elif keys[pygame.K_d] and player.x < 500 - player.width - player.vel:
-            player.x += player.vel
-            player.right = True
-            player.left = False
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+            player.walkLeft()
+        elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            player.walkRight()
+        elif keys[pygame.K_x]:
+            run = False
         else:
-            player.right = False
-            player.left = False
-            player.walkCount = 0
+            player.stop()
 
-        if not(player.isJump):
-            if keys[pygame.K_SPACE]:
-                player.isJump = True
-                player.right = False
-                player.left = False
-                player.walkCount = 0
-        else:
-            if player.jumpCount >= -10:
-                neg = 1
-                if player.jumpCount < 0:
-                    neg = -1
-                player.y -= (player.jumpCount ** 2) * 0.5 * neg
-                player.jumpCount -= 1
-            else:
-                player.isJump = False
-                player.jumpCount = 10
+        player.jump(keys)
 
         redrawGameWindow()
 
