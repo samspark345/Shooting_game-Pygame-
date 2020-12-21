@@ -16,6 +16,8 @@ class Actor(object):
         self.walkRightSprites = []
         self.walkLeftSprites = []
         self.standing = None
+        self.facing = 1
+        self.bullets = []
         self.role = role
 
     #create walkRight image array
@@ -26,8 +28,6 @@ class Actor(object):
         for num in range(1,10) :
             self.walkLeftSprites.append(pygame.image.load('img/'+self.role +'/left_walk/L'+str(num)+'.png'))
         
-        #there is no standing for the enemy though?
-        self.standing = pygame.image.load('img/'+self.role +'/standing.png')
 
     def draw(self, win):
         # why this 27?
@@ -41,13 +41,18 @@ class Actor(object):
             win.blit(self.walkRightSprites[self.walkCount//3], (self.x, self.y))
             self.walkCount += 1
         else:
-            win.blit(self.standing, (self.x, self.y))
+            if self.facing == 1:
+                win.blit(self.walkRightSprites[0], (self.x, self.y))
+
+            else:
+                win.blit(self.walkLeftSprites[0], (self.x, self.y))
 
     def walkLeft(self):
         if self.x > self.vel:
             self.x -= self.vel
             self.left = True
             self.right = False
+            self.facing = -1
 
     def walkRight(self):
         if self.x < 500 - self.width - self.vel:
@@ -56,8 +61,6 @@ class Actor(object):
             self.left = False
     
     def stop(self):
-        self.right = False
-        self.left = False
         self.walkCount = 0
 
     def jump(self, keys):
@@ -77,7 +80,18 @@ class Actor(object):
             else:
                 self.isJump = False
                 self.jumpCount = 10
-            
+        
+class projectile(object):
+
+    def __init__(self, x, y, radius, facing):
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.vel = 8 * facing 
+
+    def draw(self, win):
+        pygame.draw.circle(win, (0,0,0), (self.x, self.y), self.radius)
+
 
 class Player(Actor):
     def __init__(self, x, y, width, height):
