@@ -18,6 +18,7 @@ class Actor(object):
         self.standing = None
         self.facing = 1
         self.bullets = []
+        self.hitbox = (self.x, self.y, 64, 64)
         self.role = role
 
     #create walkRight image array
@@ -31,8 +32,12 @@ class Actor(object):
 
     def draw(self, win):
         # why this 27?
-        if self.walkCount + 1 >= 27:
+        if self.walkCount + 1 >= 27 and self.role == "player":
             self.walkCount = 0
+        
+        else:
+            if self.walkCount + 1 >= 28:
+             self.walkCount = 0
 
         if self.left:
             win.blit(self.walkLeftSprites[self.walkCount//3], (self.x, self.y))
@@ -46,6 +51,8 @@ class Actor(object):
 
             else:
                 win.blit(self.walkLeftSprites[0], (self.x, self.y))
+        self.hitbox = (self.x + 16, self.y+12, self.width-24, self.height-10)
+        pygame.draw.rect(win, (0, 0, 0), self.hitbox, 1)
 
     def walkLeft(self):
         if self.x > self.vel:
@@ -59,6 +66,7 @@ class Actor(object):
             self.x += self.vel
             self.right = True
             self.left = False
+            self.facing = 1
     
     def stop(self):
         self.walkCount = 0
@@ -101,3 +109,11 @@ class Player(Actor):
 class Enemy(Actor):
     def __init__(self, x, y, width, height):
         Actor.__init__(self, x, y, width, height, "enemy")
+    
+    def move(self):
+        if self.left:
+            self.walkLeft()
+        else:
+            self.walkRight()
+    
+    

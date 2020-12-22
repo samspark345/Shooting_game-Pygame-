@@ -1,5 +1,5 @@
-import pygame
-from actor import Player, projectile
+import pygame, random
+from actor import Player, projectile, Enemy
 
 pygame.init()
 win = pygame.display.set_mode((500, 480))
@@ -13,6 +13,7 @@ bg = pygame.image.load('img/bg.jpg')
 def redrawGameWindow():
     win.blit(bg, (0, 0))
     player.draw(win)
+    enemy[0].draw(win)
     for bullet in player.bullets:
         bullet.draw(win)
 
@@ -21,6 +22,7 @@ def redrawGameWindow():
 if __name__ == "__main__":
     player = Player(200, 410, 64, 64)
     player.setup()
+    enemy = []
     run = True
     
     while run:
@@ -53,6 +55,24 @@ if __name__ == "__main__":
             player.stop()
 
         player.jump(keys)
+
+
+        #### enemy ####
+        endpos = 500 - player.width - player.vel
+        if len(enemy) < 1:
+            xpos = ([endpos, player.vel])
+            enemy.append(Enemy(xpos[random.randint(0, 1)], 410, 64, 64))
+            if xpos == endpos:
+                enemy[0].facing, enemy[0].left, enemy[0].right = -1, True, False
+            else:
+                enemy[0].facing, enemy[0].left, enemy[0].right = 1, False, True
+            enemy[0].setup()
+        else:
+            if enemy[0].x >= endpos and enemy[0].facing == 1 and enemy[0].right:
+                enemy[0].right, enemy[0].left = False, True
+            elif enemy[0].x <= 0+player.vel and enemy[0].facing == -1 and enemy[0].left:
+                enemy[0].right, enemy[0].left = True, False
+        enemy[0].move()
 
         redrawGameWindow()
 
