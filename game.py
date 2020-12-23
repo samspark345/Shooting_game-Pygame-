@@ -10,6 +10,7 @@ clock = pygame.time.Clock()
 
 bg = pygame.image.load('img/bg.jpg')
 
+
 def redrawGameWindow():
     win.blit(bg, (0, 0))
     player.draw(win)

@@ -1,5 +1,6 @@
 import pygame
 
+
 class Actor(object):
     def __init__(self, x, y, width, height, role):
         self.x = x
@@ -23,12 +24,18 @@ class Actor(object):
 
     #create walkRight image array
     def setup(self):
-        for num in range(1,10) :
-            self.walkRightSprites.append(pygame.image.load('img/'+self.role +'/right_walk/R'+str(num)+'.png'))
-        
-        for num in range(1,10) :
-            self.walkLeftSprites.append(pygame.image.load('img/'+self.role +'/left_walk/L'+str(num)+'.png'))
-        
+        if self.role == "player":
+            for num in range(1, 10):
+                self.walkRightSprites.append(pygame.image.load('img/'+self.role +'/right_walk/R'+str(num)+'.png'))
+
+            for num in range(1, 10):
+                self.walkLeftSprites.append(pygame.image.load('img/'+self.role +'/left_walk/L'+str(num)+'.png'))
+        else:
+            for num in range(1, 12):
+                self.walkRightSprites.append(pygame.image.load('img/'+self.role +'/right_walk/R'+str(num)+'.png'))
+
+            for num in range(1, 12):
+                self.walkLeftSprites.append(pygame.image.load('img/'+self.role +'/left_walk/L'+str(num)+'.png'))
 
     def draw(self, win):
         # why this 27?
@@ -36,7 +43,7 @@ class Actor(object):
             self.walkCount = 0
         
         else:
-            if self.walkCount + 1 >= 28:
+            if self.walkCount + 1 >= 33:
              self.walkCount = 0
 
         if self.left:
@@ -54,7 +61,7 @@ class Actor(object):
         self.hitbox = (self.x + 16, self.y+12, self.width-24, self.height-10)
         pygame.draw.rect(win, (0, 0, 0), self.hitbox, 1)
         if self.role == "enemy":
-             pygame.draw.rect(win, (255, 0, 0), (self.x + 16, self.y, self.life, 10), 0)
+            pygame.draw.rect(win, (255, 0, 0), (self.x + 16, self.y, self.life, 10), 0)
 
     def walkLeft(self):
         if self.x > self.vel:
@@ -90,7 +97,8 @@ class Actor(object):
             else:
                 self.isJump = False
                 self.jumpCount = 10
-        
+
+
 class projectile(object):
 
     def __init__(self, x, y, radius, facing):
