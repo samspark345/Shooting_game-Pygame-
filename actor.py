@@ -18,7 +18,7 @@ class Actor(object):
         self.standing = None
         self.facing = 1
         self.bullets = []
-        self.hitbox = (self.x, self.y, 64, 64)
+        self.hitbox = (self.x + 16, self.y + 12, self.width-24, self.height-10)
         self.role = role
 
     #create walkRight image array

@@ -38,6 +38,11 @@ if __name__ == "__main__":
             player.bullets.append(projectile(round(player.x + player.width//2), round(player.y + player.height//2), 3, player.facing))
         
         for bullet in player.bullets:
+            if (bullet.y - bullet.radius < enemy[0].hitbox[1] + enemy[0].hitbox[3]) and (bullet.y + bullet.radius > enemy[0].hitbox[1]):
+                if  (bullet.x - bullet.radius > enemy[0].hitbox[0]) and (bullet.x - bullet.radius < enemy[0].hitbox[0] + enemy[0].hitbox[2]):
+                    player.bullets.remove(bullet)
+                    print("you have been hit")
+
             if bullet.x < 500 and bullet.x > 0:
                 bullet.x += bullet.vel
             else:
