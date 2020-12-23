@@ -13,7 +13,8 @@ bg = pygame.image.load('img/bg.jpg')
 def redrawGameWindow():
     win.blit(bg, (0, 0))
     player.draw(win)
-    enemy[0].draw(win)
+    if len(enemy) > 0:
+        enemy[0].draw(win)
     for bullet in player.bullets:
         bullet.draw(win)
 
@@ -38,9 +39,10 @@ if __name__ == "__main__":
             player.bullets.append(projectile(round(player.x + player.width//2), round(player.y + player.height//2), 3, player.facing))
         
         for bullet in player.bullets:
-            if (bullet.y - bullet.radius < enemy[0].hitbox[1] + enemy[0].hitbox[3]) and (bullet.y + bullet.radius > enemy[0].hitbox[1]):
+            if len(enemy) > 0 and(bullet.y - bullet.radius < enemy[0].hitbox[1] + enemy[0].hitbox[3]) and (bullet.y + bullet.radius > enemy[0].hitbox[1]):
                 if  (bullet.x - bullet.radius > enemy[0].hitbox[0]) and (bullet.x - bullet.radius < enemy[0].hitbox[0] + enemy[0].hitbox[2]):
                     player.bullets.remove(bullet)
+                    enemy[0].life -= 12
                     print("you have been hit")
 
             if bullet.x < 500 and bullet.x > 0:
@@ -77,7 +79,11 @@ if __name__ == "__main__":
                 enemy[0].right, enemy[0].left = False, True
             elif enemy[0].x <= 0+player.vel and enemy[0].facing == -1 and enemy[0].left:
                 enemy[0].right, enemy[0].left = True, False
-        enemy[0].move()
+        
+        if enemy[0].life == 0:
+            enemy.pop()
+        else:
+            enemy[0].move()
 
         redrawGameWindow()
 

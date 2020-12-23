@@ -53,6 +53,8 @@ class Actor(object):
                 win.blit(self.walkLeftSprites[0], (self.x, self.y))
         self.hitbox = (self.x + 16, self.y+12, self.width-24, self.height-10)
         pygame.draw.rect(win, (0, 0, 0), self.hitbox, 1)
+        if self.role == "enemy":
+             pygame.draw.rect(win, (255, 0, 0), (self.x + 16, self.y, self.life, 10), 0)
 
     def walkLeft(self):
         if self.x > self.vel:
@@ -109,6 +111,7 @@ class Player(Actor):
 class Enemy(Actor):
     def __init__(self, x, y, width, height):
         Actor.__init__(self, x, y, width, height, "enemy")
+        self.life = 60
     
     def move(self):
         if self.left:
