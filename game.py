@@ -24,6 +24,7 @@ if __name__ == "__main__":
     player = Player(200, 410, 64, 64)
     player.setup()
     enemy = []
+    shoottimer = 0
     run = True
     
     while run:
@@ -32,14 +33,21 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-
+            
+        
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_s] and len(player.bullets) < 5:
+        if shoottimer >= 3:
+            shoottimer = 0
+        elif shoottimer > 0:
+            shoottimer += 1
+
+        if keys[pygame.K_s] and len(player.bullets) < 5 and shoottimer == 0:
             player.bullets.append(projectile(round(player.x + player.width//2), round(player.y + player.height//2), 3, player.facing))
-        
+            shoottimer += 1
+
         for bullet in player.bullets:
-            if len(enemy) > 0 and(bullet.y - bullet.radius < enemy[0].hitbox[1] + enemy[0].hitbox[3]) and (bullet.y + bullet.radius > enemy[0].hitbox[1]):
+            if len(enemy) > 0 and (bullet.y - bullet.radius < enemy[0].hitbox[1] + enemy[0].hitbox[3]) and (bullet.y + bullet.radius > enemy[0].hitbox[1]):
                 if  (bullet.x - bullet.radius > enemy[0].hitbox[0]) and (bullet.x - bullet.radius < enemy[0].hitbox[0] + enemy[0].hitbox[2]):
                     player.bullets.remove(bullet)
                     enemy[0].life -= 12
@@ -75,10 +83,7 @@ if __name__ == "__main__":
                 enemy[0].facing, enemy[0].left, enemy[0].right = 1, False, True
             enemy[0].setup()
         else:
-            if enemy[0].x >= endpos and enemy[0].facing == 1 and enemy[0].right:
-                enemy[0].right, enemy[0].left = False, True
-            elif enemy[0].x <= 0+player.vel and enemy[0].facing == -1 and enemy[0].left:
-                enemy[0].right, enemy[0].left = True, False
+            enemy[0].enemy_tracking()
         
         if enemy[0].life == 0:
             enemy.pop()

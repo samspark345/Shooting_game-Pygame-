@@ -112,6 +112,7 @@ class Enemy(Actor):
     def __init__(self, x, y, width, height):
         Actor.__init__(self, x, y, width, height, "enemy")
         self.life = 60
+        self.endpos = 500 - self.width - self.vel
     
     def move(self):
         if self.left:
@@ -119,4 +120,9 @@ class Enemy(Actor):
         else:
             self.walkRight()
     
+    def enemy_tracking(self):
+        if self.x >= self.endpos and self.facing == 1 and self.right:
+            self.right, self.left = False, True
+        elif self.x <= 0+self.vel and self.facing == -1 and self.left:
+            self.right, self.left = True, False
     
