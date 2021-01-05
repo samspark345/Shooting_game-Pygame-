@@ -1,96 +1,126 @@
 import pygame, random
 from actor import Player, projectile, Enemy
+from pygame import sprite
+
+screen_width, screen_height = 1000, 580
+
 
 pygame.init()
-win = pygame.display.set_mode((500, 480))
+win = pygame.display.set_mode((screen_width, screen_height))
 
 pygame.display.set_caption("First Game")
 
 clock = pygame.time.Clock()
 
 bg = pygame.image.load('img/bg.jpg')
+bg_size = bg.get_size()
+bg = pygame.transform.scale(bg, (int(bg_size[0]*2), int(bg_size[1])+100))
 
 
 def redrawGameWindow():
     win.blit(bg, (0, 0))
-    player.draw(win)
-    if len(enemy) > 0:
-        enemy[0].draw(win)
-    for bullet in player.bullets:
-        bullet.draw(win)
+    enemy.life_update(win), player.life_update(win)
+    allsprites.update()
+    allsprites.draw(win)
 
     pygame.display.update()
 
 if __name__ == "__main__":
-    player = Player(200, 410, 64, 64)
+    player = Player(200, 500, 64, 64)
     player.setup()
-    enemy = []
+    enemy = Enemy(screen_width - player.width - player.vel, 500, 64, 64)
+    enemy.setup()
     shoottimer = 0
+    bullets = sprite.Group()
+    allsprites = sprite.Group()
+    allsprites.add(player, enemy)
+    hit_timer = 0
+    font = pygame.font.SysFont('comicsans', 60, True)
+    Gameover = False
     run = True
-    
+
     while run:
         clock.tick(27)
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            
-        
-        keys = pygame.key.get_pressed()
 
-        if shoottimer >= 3:
-            shoottimer = 0
-        elif shoottimer > 0:
-            shoottimer += 1
+        if Gameover:
+            text = font.render("GAME OVER", 1, (0, 0, 0))
+            win.blit(text, (350, screen_height//2))
+            pygame.display.update()
+        else:
+            keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_s] and len(player.bullets) < 5 and shoottimer == 0:
-            player.bullets.append(projectile(round(player.x + player.width//2), round(player.y + player.height//2), 3, player.facing))
-            shoottimer += 1
+            if shoottimer >= 3:
+                shoottimer = 0
+            elif shoottimer > 0:
+                shoottimer += 1
 
-        for bullet in player.bullets:
-            if len(enemy) > 0 and (bullet.y - bullet.radius < enemy[0].hitbox[1] + enemy[0].hitbox[3]) and (bullet.y + bullet.radius > enemy[0].hitbox[1]):
-                if  (bullet.x - bullet.radius > enemy[0].hitbox[0]) and (bullet.x - bullet.radius < enemy[0].hitbox[0] + enemy[0].hitbox[2]):
-                    player.bullets.remove(bullet)
-                    enemy[0].life -= 12
-                    print("you have been hit")
+            if keys[pygame.K_s] and len(bullets) < 3 and shoottimer == 0:
+                bullet = projectile(round(player.x + player.width//2), round(player.y + player.height//2), player.facing)
+                bullets.add(bullet)
+                allsprites.add(bullet)
+                shoottimer += 1
 
-            if bullet.x < 500 and bullet.x > 0:
-                bullet.x += bullet.vel
+            for bullet in bullets:
+                if bullet.x < screen_width and bullet.x > 0:
+                    bullet.x += bullet.vel
+                    collision = sprite.collide_rect(bullet, enemy)
+                    if collision:
+                        allsprites.remove(bullet), bullets.remove(bullet)
+                        enemy.life -= 12
+
+                else:
+                    bullets.remove(bullet)
+                    allsprites.remove(bullet)
+
+            if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+                player.facing = -1
+                player.walkLeft()
+            elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+                player.facing = 1
+                player.walkRight()
+            elif keys[pygame.K_x]:
+                run = False
             else:
-                player.bullets.remove(bullet)
+                player.stop()
 
-        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            player.facing = -1
-            player.walkLeft()
-        elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            player.facing = 1
-            player.walkRight()
-        elif keys[pygame.K_x]:
-            run = False
-        else:
-            player.stop()
-
-        player.jump(keys)
+            player.jump(keys)
 
 
-        #### enemy ####
-        endpos = 500 - player.width - player.vel
-        if len(enemy) < 1:
-            xpos = ([endpos, player.vel])
-            enemy.append(Enemy(xpos[random.randint(0, 1)], 410, 64, 64))
-            if xpos == endpos:
-                enemy[0].facing, enemy[0].left, enemy[0].right = -1, True, False
+            # player hit ####
+            if (player.image_set and enemy.image_set) and sprite.collide_rect(player, enemy) and hit_timer == 0:
+                player.life -= 6
+                hit_timer += 1
+            if hit_timer > 0:
+                if hit_timer + 1 > 5:
+                    hit_timer = 0
+                else:
+                    hit_timer += 1
+            if player.life <= 0:
+                Gameover = True
+
+            #### enemy ####
+            endpos = screen_width - player.width - player.vel
+            if not(allsprites.has(enemy)):
+                xpos = ([endpos, player.vel])
+                enemy = Enemy(xpos[random.randint(0, 1)], 500, 64, 64)
+                if xpos == endpos:
+                    enemy.facing, enemy.left, enemy.right = -1, True, False
+                else:
+                    enemy.facing, enemy.left, enemy.right = 1, False, True
+                enemy.setup()
+                allsprites.add(enemy)
             else:
-                enemy[0].facing, enemy[0].left, enemy[0].right = 1, False, True
-            enemy[0].setup()
-        else:
-            enemy[0].enemy_tracking()
-        
-        if enemy[0].life == 0:
-            enemy.pop()
-        else:
-            enemy[0].move()
+                enemy.enemy_tracking()
 
-        redrawGameWindow()
+            if enemy.life == 0:
+                allsprites.remove(enemy)
+                enemy.image_set = False
+            else:
+                enemy.move()
+
+            redrawGameWindow()
 
     pygame.quit()

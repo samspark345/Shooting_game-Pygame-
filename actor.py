@@ -1,13 +1,16 @@
 import pygame
+from pygame import sprite
+
+screen_width, screen_height = 1000, 480
 
 
-class Actor(object):
+class Actor(sprite.Sprite):
     def __init__(self, x, y, width, height, role):
+        super().__init__()
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        self.health = 5
         self.vel = 5
         self.isJump = False
         self.left = False
@@ -20,6 +23,7 @@ class Actor(object):
         self.facing = 1
         self.bullets = []
         self.hitbox = (self.x + 16, self.y + 12, self.width-24, self.height-10)
+        self.image_set = False
         self.role = role
 
     #create walkRight image array
@@ -37,31 +41,28 @@ class Actor(object):
             for num in range(1, 12):
                 self.walkLeftSprites.append(pygame.image.load('img/'+self.role +'/left_walk/L'+str(num)+'.png'))
 
-    def draw(self, win):
+    def update(self):
         # why this 27?
-        if self.walkCount + 1 >= 27 and self.role == "player":
+        self.image_set = True
+        if self.walkCount + 1 >= 27:
             self.walkCount = 0
-        
-        else:
-            if self.walkCount + 1 >= 33:
-             self.walkCount = 0
 
         if self.left:
-            win.blit(self.walkLeftSprites[self.walkCount//3], (self.x, self.y))
+            self.image = self.walkLeftSprites[self.walkCount//3]
+            self.rect, self.rect.x, self.rect.y = self.image.get_rect(), self.x, self.y
             self.walkCount += 1
         elif self.right:
-            win.blit(self.walkRightSprites[self.walkCount//3], (self.x, self.y))
+            self.image = self.walkRightSprites[self.walkCount//3]
+            self.rect, self.rect.x, self.rect.y = self.image.get_rect(), self.x, self.y
             self.walkCount += 1
         else:
             if self.facing == 1:
-                win.blit(self.walkRightSprites[0], (self.x, self.y))
+                self.image = self.walkRightSprites[0]
+                self.rect, self.rect.x, self.rect.y = self.image.get_rect(), self.x, self.y
 
             else:
-                win.blit(self.walkLeftSprites[0], (self.x, self.y))
-        self.hitbox = (self.x + 16, self.y+12, self.width-24, self.height-10)
-        pygame.draw.rect(win, (0, 0, 0), self.hitbox, 1)
-        if self.role == "enemy":
-            pygame.draw.rect(win, (255, 0, 0), (self.x + 16, self.y, self.life, 10), 0)
+                self.image = self.walkLeftSprites[0]
+                self.rect, self.rect.x, self.rect.y = self.image.get_rect(), self.x, self.y
 
     def walkLeft(self):
         if self.x > self.vel:
@@ -71,12 +72,12 @@ class Actor(object):
             self.facing = -1
 
     def walkRight(self):
-        if self.x < 500 - self.width - self.vel:
+        if self.x < screen_width - self.width - self.vel:
             self.x += self.vel
             self.right = True
             self.left = False
             self.facing = 1
-    
+
     def stop(self):
         self.walkCount = 0
 
@@ -98,39 +99,75 @@ class Actor(object):
                 self.isJump = False
                 self.jumpCount = 10
 
+    def life_update(self, win):
+        pygame.draw.rect(win, (0, 0, 0), (self.x-1, self.y, 62, 10), 1)
+        pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, 60, 10))
+        pygame.draw.rect(win, (0, 255, 0), (self.x, self.y, self.life, 10))
 
-class projectile(object):
 
-    def __init__(self, x, y, radius, facing):
+class projectile(sprite.Sprite):
+
+    def __init__(self, x, y, facing):
+        super().__init__()
         self.x = x
         self.y = y
-        self.radius = radius
-        self.vel = 8 * facing 
+        self.image = pygame.image.load("img/fireball.png")
+        self.size = self.image.get_size()
+        self.image = pygame.transform.scale(self.image, (int(self.size[0]/2), int(self.size[1]/2)))
+        self.image2 = pygame.transform.flip(self.image, True, False)
+        self.rect = self.image.get_rect()
+        self.vel = 8 * facing
 
-    def draw(self, win):
-        pygame.draw.circle(win, (0,0,0), (self.x, self.y), self.radius)
+    def update(self):
+        if self.vel < 0:
+            self.image = self.image2
+        self.rect.x, self.rect.y = self.x, self.y-28
+
+    def collision(self, sprite1, sprite2):
+        col = sprite1.rect.colliderect(sprite2.rect)
+        return col
 
 
 class Player(Actor):
     def __init__(self, x, y, width, height):
         Actor.__init__(self, x, y, width, height, "player")
+        self.life = 60
 
 
 class Enemy(Actor):
     def __init__(self, x, y, width, height):
         Actor.__init__(self, x, y, width, height, "enemy")
+        self.facing = -1
         self.life = 60
-        self.endpos = 500 - self.width - self.vel
-    
+        self.endpos = screen_width - self.width - self.vel
+        self.left = True
+        self.right = False
+
     def move(self):
         if self.left:
             self.walkLeft()
         else:
             self.walkRight()
-    
+
     def enemy_tracking(self):
         if self.x >= self.endpos and self.facing == 1 and self.right:
             self.right, self.left = False, True
         elif self.x <= 0+self.vel and self.facing == -1 and self.left:
             self.right, self.left = True, False
-    
+
+    def update(self):
+        # why this 27?
+        self.image_set = True
+        if self.walkCount + 1 >= 33:
+            self.walkCount = 0
+
+        if self.left:
+            self.image = self.walkLeftSprites[self.walkCount//3]
+            self.image.set_colorkey((0, 0, 0))
+            self.rect, self.rect.x, self.rect.y = self.image.get_rect(), self.x, self.y
+            self.walkCount += 1
+        elif self.right:
+            self.image = self.walkRightSprites[self.walkCount//3]
+            self.image.set_colorkey((0, 0, 0))
+            self.rect, self.rect.x, self.rect.y = self.image.get_rect(), self.x, self.y
+            self.walkCount += 1
