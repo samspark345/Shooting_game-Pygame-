@@ -104,30 +104,6 @@ class Actor(sprite.Sprite):
         pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, 60, 10))
         pygame.draw.rect(win, (0, 255, 0), (self.x, self.y, self.life, 10))
 
-
-class projectile(sprite.Sprite):
-
-    def __init__(self, x, y, facing):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.image = pygame.image.load("img/fireball.png")
-        self.size = self.image.get_size()
-        self.image = pygame.transform.scale(self.image, (int(self.size[0]/2), int(self.size[1]/2)))
-        self.image2 = pygame.transform.flip(self.image, True, False)
-        self.rect = self.image.get_rect()
-        self.vel = 8 * facing
-
-    def update(self):
-        if self.vel < 0:
-            self.image = self.image2
-        self.rect.x, self.rect.y = self.x, self.y-28
-
-    def collision(self, sprite1, sprite2):
-        col = sprite1.rect.colliderect(sprite2.rect)
-        return col
-
-
 class Player(Actor):
     def __init__(self, x, y, width, height):
         Actor.__init__(self, x, y, width, height, "player")

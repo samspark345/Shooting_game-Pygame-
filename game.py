@@ -1,6 +1,7 @@
 import pygame, random
-from actor import Player, projectile, Enemy
+from actor import Player, Enemy
 from pygame import sprite
+from projectile import projectile
 
 screen_width, screen_height = 1000, 580
 
