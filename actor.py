@@ -19,10 +19,7 @@ class Actor(sprite.Sprite):
         self.jumpCount = 10
         self.walkRightSprites = []
         self.walkLeftSprites = []
-        self.standing = None
         self.facing = 1
-        self.bullets = []
-        self.hitbox = (self.x + 16, self.y + 12, self.width-24, self.height-10)
         self.image_set = False
         self.role = role
 
